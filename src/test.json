@@ -1,0 +1,32 @@
+{
+    "properties": {
+        "extensionId": "GitHub.copilot",
+        "id.value": "_ghostTextPostInsert",
+        "VSCode.ABExp.Features": "account-aa;azure-dev_surveyOnecfcf;azuremlaacf;codespacesAA;config.autoImportUserSymbols;config.C_Cpp.debugShortcut;config.jupyter.showOnlyOneTypeOfKernel;config.python.analysis.refactoring.allowMovingSymbols;config.window.experimental.useSandbox;config.workbench.editor.preferHistoryBasedLanguageDetectioncf;gettingStarted.overrideCategory.ms-azuretools.azure-dev.azd.start.when;gettingStarted.overrideCategory.ms-azuretools.vscode-azurefunctions.functionsStart.when;gettingStarted.overrideCategory.ms-azuretools.vscode-azureresourcegroups.azure-get-started.when;gettingStarted.overrideCategory.vscode.typescript-language-features.nodejsWelcome.when;handshakeGitFileClients;inProductDoccf;jupyterEnhancedDataViewer;livesharecontinuousaa;mindaroBinariesVersion;mindaroBinariesVersion-1.0.20210702;mindaroBinariesVersion-1.0.20210723;NativeNotebookEditor;partialActivation_showCMakeLists;portForwardingServiceEnabled-development;portForwardingServiceEnabled-production;portForwardingServiceEnabled-staging;pylanceAutoIndent;pylanceRenameFile;pythonPromptNewFormatterExt;pythonPromptNewToolsExt;PythonPyTorchProfiler;pythonTensorboardExperiment;redErrorText;RemoveKernelToolbarInInteractiveWindow;resetFileClients;reusableLinks;shouldUseGrpcService;testing-appver4;welcomeview",
+        "abexp.assignmentcontext": "vsliv368:30146709;vsreu685:30147344;python383:30185418;vspor879:30202332;vspor708:30202333;vspor363:30204092;vslsvsres303:30308271;vserr242:30382549;pythontb:30283811;vsjup518:30340749;pythonptprofiler:30281270;vshan820:30294714;vstes263:30335439;pythondataviewer:30285071;vscod805:30301674;binariesv615:30325510;bridge0708:30335490;bridge0723:30353136;cmake_vspar411:30581797;vsaa593:30376534;pythonvs932:30410667;cppdebug:30492333;vsclangdc:30486549;c4g48928:30535728;dsvsc012cf:30540253;pynewext54:30695312;azure-dev_surveyonecf:30548226;nodejswelcome1:30587005;3biah626:30602489;pyind779:30671433;f6dab269:30613381;pythonsymbol12:30671437;2i9eh265:30646982;vsctsb:30705553;azdwalk:30687957;pythonms35:30701012;pythonfmttext:30716742;",
+        "common.machineId": "90fe504a8b0503c703d588cbe1878e15db927d0a444c39f9ff52773d747631ed",
+        "sessionID": "6243e17b-2ab1-4b39-a365-9a069b9131541681781538966",
+        "commitHash": "704ed70d4fd1c6bd6342c436f1ede30d1cff4710",
+        "version": "1.77.3",
+        "common.platformVersion": "22.3.0",
+        "common.platform": "Mac",
+        "common.nodePlatform": "darwin",
+        "common.nodeArch": "arm64",
+        "common.product": "desktop",
+        "timestamp": "2023-04-18T01:35:11.087Z",
+        "common.version.shell": "19.1.11",
+        "common.version.renderer": "102.0.5005.196",
+        "common.firstSessionDate": "Fri, 20 Jan 2023 01:32:56 GMT",
+        "common.lastSessionDate": "Sun, 16 Apr 2023 15:28:05 GMT",
+        "common.isNewSession": "0",
+        "common.remoteAuthority": "none",
+        "common.sandboxed": "1"
+    },
+    "measurements": {
+        "duration": 1.5013329982757568,
+        "pluginHostTelemetry": 1,
+        "common.timesincesessionstart": 172121,
+        "common.sequence": 177,
+        "common.cli": 0
+    }
+}

@@ -1,117 +1,188 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
-import {createWriteStream, promises as fs} from 'fs'
-import * as path from 'path'
-import {randomBytes} from 'crypto'
+import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+let logFilePath: string;
+
 export function activate(context: vscode.ExtensionContext) {
-	const config = vscode.workspace.getConfiguration("operationtracker")
-	const outputDir = path.join(...(config.get('outputDirectory') as string)
-		.split(path.sep)
-		.map(entry => entry === '~'
-			? (process.env['HOME'] || '.')
-			: entry)
-	)
+  const disposable = vscode.commands.registerCommand(
+    "extension.logUserAction:start",
+    () => {
+      // Prompt user for user number
+      vscode.window
+        .showInputBox({ placeHolder: "Enter user number" })
+        .then((userNumber) => {
+          // Create log file for this user
+          const logFolderPath = `/Users/r4yen/Desktop/Research/SearchNGen/Formative Study/logs/User${userNumber}`;
+          if (!fs.existsSync(logFolderPath)) {
+            fs.mkdirSync(logFolderPath, { recursive: true });
+          }
 
-	const storeContent = config.get('storeContents')
+          // store in json
+          const logFileName = `log_${new Date()
+            .toLocaleString()
+            .replace(/\//g, "-")
+            .replace(/,/g, "")
+            .replace(/:/g, "-")
+            .replace(/ /g, "_")}.json`;
+          logFilePath = path.join(logFolderPath, logFileName);
+          console.log("Filr>> ", logFilePath);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	// console.log('Congratulations, your extension "operation-track" is now active!');
+          // Log user actions
+          // const writeAction = (action: string, data: any) => {
+          //   fs.appendFileSync(
+          //     logFilePath,
+          //     JSON.stringify({
+          //       action,
+          //       time: new Date().toISOString(),
+          //       ...data,
+          //     }) + "\n"
+          //   );
+          // }
 
-	const logStream = (async () => {
-		// Its easier to just try and create the directory no matter what.
-		try { await fs.mkdir(outputDir, {recursive: true}) }
-		catch (e) {
-			// Ignore if the directory already exists
-			if (e.code !== 'EEXIST') throw e
-		}
-		
-		// eg 10_09_2020
-		const date = new Date().toLocaleDateString('en-GB').replace(/\//g, '_')
-		// Using crypto randombytes because its easier. Using filesafe base64.
-		const suffix = randomBytes(6).toString('base64').replace(/\+/g, '-').replace(/\//g, '_')
-		const filename = path.join(outputDir, `actions_${date}_${suffix}.json`)
-		
-		const stream = createWriteStream(filename, {flags: 'a'}) // Default options are fine.
-		vscode.window.showInformationMessage('tracking loaded to ' + filename);
-		return stream
-	})()
+          // Log initialisation
+          logUserEvent("initialisation");
 
-	logStream.catch(e => vscode.window.showErrorMessage('Error opening log file', e.stack))
+          // Watch for text input events
+          let disposable = vscode.Disposable.from(
+            vscode.workspace.onDidChangeTextDocument((event) => {
+              // console.log("event>> ", event);
+              // const text = event.document.getText();
 
-	const writeAction = (type: string, details: any) => {
-		if (!storeContent) delete details.content
-		
-		logStream.then(s => s.write(JSON.stringify({
-			type,
-			time: new Date().toISOString(),
-			...details
-		}) + '\n'))
-	}
+              // const textBeforeCursor = the text before the cursor only in the current line
+              const textBeforeCursor = event.document.getText(
+                // new vscode.Range(position.with(undefined, 0), position)
+                new vscode.Range(
+                  event.document.positionAt(event.document.offsetAt(event.contentChanges[0].range.start) - 1),
+                  event.document.positionAt(event.document.offsetAt(event.contentChanges[0].range.start))
+                )
+              );
 
-	vscode.workspace.textDocuments.forEach(doc => {
-		// console.log('has document open', doc.fileName)
-		writeAction('open', {fileName: doc.fileName, content: doc.getText()})
-	})
+              console.log("textBeforeCursor>> ", textBeforeCursor);
+              
+              const keyInput = event.contentChanges[0]
+              console.log('keyInput>> ', keyInput);
+              if (keyInput.text === " ") {
+                logUserEvent("space");
+              } else if (keyInput.text.includes("\n")) {
+                logUserEvent("enter");
+              } else if (keyInput.text.includes("\t")) {
+                logUserEvent("tab");
+              } else if (keyInput.text === "") {
+                logUserEvent("backspace");
+              } else if (keyInput.text.length > 1) {
+                logUserEvent("pasteOrCopilot", { content: keyInput.text });
+              } 
 
-	writeAction('initialized', {})
+              // if == '': new world, == '//': new command
+              if (textBeforeCursor === "") {
+                logTextChanges(event, "new world");
+              } else if (textBeforeCursor === "//") {
+                logTextChanges(event, "new command");
+              } else {
+                logTextChanges(event, "edit");
+              }
+            }),
 
-	vscode.workspace.onDidOpenTextDocument(doc => {
-		// console.log('opened document', doc.fileName)
-		writeAction('open', {fileName: doc.fileName, content: doc.getText()})
-	})
-	
-	vscode.workspace.onDidCloseTextDocument(doc => {
-		writeAction('closed', {fileName: doc.fileName, content: doc.getText()})
-	})
+            // vscode.commands.registerCommand(
+            //   "extension.logSuggestionAccepted",
+            //   () => {
+            //     logUserEvent("acceptSuggestion");
+            //   }
+            // ),
 
-	vscode.workspace.onDidCreateFiles(e => {
-		writeAction('create files', {
-			files: e.files.map(f => f.fsPath)
-		})
-	})
+            // vscode.window.onDidChangeTextEditorSelection((event) => {
+            //   logTextSelection(event);
+            // }),
 
-	vscode.workspace.onDidDeleteFiles(e => {
-		writeAction('delete files', {
-			files: e.files.map(f => f.fsPath)
-		})
-	})
+            // Watch for file events
+            vscode.workspace.onDidCreateFiles((event) => {
+              const type = "create file";
+              const content = event.files[0].fsPath;
 
-	vscode.workspace.onDidChangeTextDocument(e => {
-		// console.log('change event', e)
-		// console.log('save', e.document.fileName, JSON.stringify(e.contentChanges))
+              logUserEvent("fileOperation", { type, content });
+            }),
+            vscode.workspace.onDidOpenTextDocument((event) => {
+              const type = "open file";
+              const content = event.uri.fsPath;
+              logUserEvent("fileOperation", { type, content });
+            }),
+            vscode.workspace.onDidDeleteFiles((event) => {
+              const type = "delete file";
+              const content = event.files[0].fsPath;
+              logUserEvent("fileOperation", { type, content });
+            }),
+            vscode.workspace.onDidCloseTextDocument((event) => {
+              const type = "close file";
+              const content = event.uri.fsPath;
+              logUserEvent("fileOperation", { type, content });
+            }),
 
-		writeAction('change', {
-			fileName: e.document.fileName,
-			change: e.contentChanges
-		})
+            // Watch for editor focus events
+            vscode.window.onDidChangeWindowState((event) => {
+              const type = "focus";
+              const content = event.focused ? "focused" : "unfocused";
+              logUserEvent("focus", { type, content });
+            })
+          );
+        });
+    }
+  );
 
-		// console.log(e.contentChanges.map(change => {
-		// 	// return {
-		// 	// 	start: e.document.offsetAt(change.range.start),
-		// 	// 	end: e.document.offsetAt(change.range.end)
-		// 	// }
-		// }))
+  let disposable3 = vscode.commands.registerCommand('type', (args) => {
+    // Handle when the user types a character
+    console.log("args>> ", args.text, args.source, vscode.window.activeTextEditor?.selection.isEmpty);
+    vscode.commands.executeCommand('default:type', args);
+  });
 
-		
-	})
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('operation-track.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showErrorMessage('Yooo');
-	});
-
-	context.subscriptions.push(disposable);
+  context.subscriptions.push(disposable, disposable3);
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {}
+function logTextChanges(event: vscode.TextDocumentChangeEvent, type: string) {
+  let logEntry = {
+    time: Date.now(),
+    action: "textChange",
+    type: type,
+    filename: event.document.fileName,
+    changes: event.contentChanges.map((change) => {
+      return {
+        range: change.range,
+        rangeOffset: event.document.offsetAt(change.range.start),
+        rangeLength: change.rangeLength,
+        text: change.text,
+      };
+    }),
+  };
+  let logFileContent = JSON.stringify(logEntry);
+  fs.appendFileSync(logFilePath, logFileContent);
+}
+
+function logUserEvent(eventName: string, data?: any) {
+  let logEntry = {
+    time: Date.now(),
+    eventName: eventName,
+    ...data,
+  };
+  // let logFilePath = vscode.workspace.rootPath + "/log.json";
+  let logFileContent = JSON.stringify(logEntry);
+  fs.appendFileSync(logFilePath, logFileContent);
+}
+
+function logTextSelection(event: vscode.TextEditorSelectionChangeEvent) {
+  let logEntry = {
+    time: Date.now(),
+    action: "selection",
+    filename: event.textEditor.document.fileName,
+    selection: event.selections.map((selection) => {
+      return {
+        active: selection.active,
+        anchor: selection.anchor,
+        start: selection.start,
+        end: selection.end,
+        isReversed: selection.isReversed,
+      };
+    }),
+  };
+  let logFileContent = JSON.stringify(logEntry);
+  fs.appendFileSync(logFilePath, logFileContent);
+}

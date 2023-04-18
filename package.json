@@ -21,8 +21,8 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "operationtracker.helloWorld",
-				"title": "Hello World"
+				"command": "extension.logUserAction:start",
+				"title": "Start Logging User Action"
 			}
 		],
 		"configuration": {
